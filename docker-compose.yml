@@ -8,9 +8,33 @@ services:
       - "8000:8000"
     environment:
       - PYTHONUNBUFFERED=1
+      - MONGODB_URI=mongodb://mongo:example@mongodb:27017/?authSource=admin
+      - MONGODB_DB=appdb
     # Uncomment to enable live reload in development:
     volumes:
      - .:/app
      - /app/__pycache__
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    restart: unless-stopped 
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "mongo", "--password", "example", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo-data: 

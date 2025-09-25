@@ -1,7 +1,12 @@
-from typing import Union
+from typing import Union, Optional, List
+import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from motor.motor_asyncio import AsyncIOMotorClient
+from beanie import init_beanie
+
+from models import ItemDocument
 
 app = FastAPI()
 
@@ -12,9 +17,20 @@ class Item(BaseModel):
     is_offer: Union[bool, None] = None
 
 
+@app.on_event("startup")
+async def app_init() -> None:
+    mongodb_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+    mongodb_db = os.getenv("MONGODB_DB", "appdb")
+
+    client = AsyncIOMotorClient(mongodb_uri)
+    db = client[mongodb_db]
+
+    await init_beanie(database=db, document_models=[ItemDocument])
+
+
 @app.get("/")
 def read_root():
-    return {"Hellos": "World"}
+    return {"Hello": "World"}
 
 
 @app.get("/items/{item_id}")
@@ -25,3 +41,16 @@ def read_item(item_id: int, q: Union[str, None] = None):
 @app.put("/items/{item_id}")
 def update_item(item_id: int, item: Item):
     return {"item_name": item.name, "item_id": item_id}
+
+
+@app.post("/items", response_model=Item)
+async def create_item(item: Item) -> Item:
+    doc = ItemDocument(**item.dict())
+    await doc.insert()
+    return item
+
+
+@app.get("/items", response_model=List[Item])
+async def list_items() -> List[Item]:
+    docs = await ItemDocument.find_all().to_list()
+    return [Item(name=d.name, price=d.price, is_offer=d.is_offer) for d in docs]
