@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  api:
+  research-agent-api:
     build:
       context: .
       dockerfile: Dockerfile

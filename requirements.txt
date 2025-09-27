@@ -6,3 +6,5 @@ motor
 openai
 httpx
 pytest
+pytest-asyncio
+pymongo

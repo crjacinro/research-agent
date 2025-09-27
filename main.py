@@ -1,5 +1,6 @@
 from typing import Union, Optional, List
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -8,17 +9,10 @@ from beanie import init_beanie
 
 from models import ItemDocument
 
-app = FastAPI()
 
-
-class Item(BaseModel):
-    name: str
-    price: float
-    is_offer: Union[bool, None] = None
-
-
-@app.on_event("startup")
-async def app_init() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
     mongodb_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
     mongodb_db = os.getenv("MONGODB_DB", "appdb")
 
@@ -26,6 +20,19 @@ async def app_init() -> None:
     db = client[mongodb_db]
 
     await init_beanie(database=db, document_models=[ItemDocument])
+    
+    yield
+    
+    client.close()
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+class Item(BaseModel):
+    name: str
+    price: float
+    is_offer: Union[bool, None] = None
 
 
 @app.get("/")
@@ -45,7 +52,7 @@ def update_item(item_id: int, item: Item):
 
 @app.post("/items", response_model=Item)
 async def create_item(item: Item) -> Item:
-    doc = ItemDocument(**item.dict())
+    doc = ItemDocument(**item.model_dump())
     await doc.insert()
     return item
 
