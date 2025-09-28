@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 import asyncio
 
-from main import app
+from app.main import app
 
 
 @pytest.fixture

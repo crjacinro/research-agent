@@ -1,13 +1,13 @@
-from typing import Union, Optional, List
+from typing import Union, List
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 
-from models import ItemDocument
+from app.data.entities.models import ItemDocument
 
 
 @asynccontextmanager
@@ -37,7 +37,7 @@ class Item(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"Hello": "World!"}
 
 
 @app.get("/items/{item_id}")
