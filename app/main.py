@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 
+from app.api import agents
 from app.data.entities.models import ItemDocument
 
 
@@ -25,8 +26,12 @@ async def lifespan(app: FastAPI):
     
     client.close()
 
+def create_app() -> FastAPI:
+    fastapi_app = FastAPI(title="Research Agent API", version="1.0", lifespan=lifespan)
+    fastapi_app.include_router(agents.router)
+    return fastapi_app
 
-app = FastAPI(lifespan=lifespan)
+app = create_app()
 
 
 class Item(BaseModel):
@@ -35,20 +40,9 @@ class Item(BaseModel):
     is_offer: Union[bool, None] = None
 
 
-@app.get("/")
+@app.get("/ping")
 def read_root():
-    return {"Hello": "World!"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
-
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    return {"item_name": item.name, "item_id": item_id}
-
+    return "pong"
 
 @app.post("/items", response_model=Item)
 async def create_item(item: Item) -> Item:
