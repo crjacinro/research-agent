@@ -1,12 +1,9 @@
-from typing import Optional
-
 from beanie import Document
 
 
-class ItemDocument(Document):
+class AgentInDB(Document):
+    id: str
     name: str
-    price: float
-    is_offer: Optional[bool] = None
 
     class Settings:
-        name = "items" 
+        name = "agents"

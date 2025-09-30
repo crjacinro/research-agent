@@ -12,7 +12,7 @@ This project uses pytest and httpx for comprehensive API testing.
 ### Basic Test Execution
 ```bash
 # Run all tests
-python3 -m pytest test_main.py -v
+pytest -q
 ```
 
 ### Dependencies
