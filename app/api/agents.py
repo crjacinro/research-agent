@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 
-from app.models.requests import AgentCreate
+from app.models.requests import AgentCreate, AgentQueries
 from app.models.response import AgentOut
 from app.services import research_service
 
@@ -45,4 +45,17 @@ async def delete_agent(agent_id: str):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=e.args[0] if e.args else str(e)
+        )
+
+@router.post("/{agent_id}/queries", status_code=status.HTTP_201_CREATED)
+async def send_queries(agent_id: str, query: AgentQueries):
+    """
+    Sends new queries for the agent specified.
+    """
+    try:
+        await research_service.send_queries(agent_id, query.message)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
         )

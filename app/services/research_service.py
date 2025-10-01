@@ -25,3 +25,7 @@ async def delete_agent(agent_id: str):
         raise KeyError(f"Agent with id {agent_id} does not exist and cannot be deleted")
 
     await agent_to_delete.delete()
+
+async def send_queries(agent_id: str, query: str) -> None:
+    print(f"Sending query to agent {agent_id} with query {query}")
+    pass
