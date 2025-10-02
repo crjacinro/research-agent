@@ -2,6 +2,7 @@ from app.data.entities.models import AgentInDB
 from app.models.requests import AgentCreate
 from app.models.response import AgentOut, agent_in_db_to_out
 from uuid import uuid4
+from app.workflows.research_graph import build_research_graph
 
 async def get_agent(agent_id: str) -> AgentOut:
     current_agent = await AgentInDB.find_one(AgentInDB.id == agent_id)
@@ -27,5 +28,16 @@ async def delete_agent(agent_id: str):
     await agent_to_delete.delete()
 
 async def send_queries(agent_id: str, query: str) -> None:
-    print(f"Sending query to agent {agent_id} with query {query}")
-    pass
+    current_agent = await AgentInDB.find_one(AgentInDB.id == agent_id)
+    if current_agent is None:
+        raise ValueError(f"Agent with id {agent_id} does not exist")
+
+    if not query or not query.strip():
+        raise ValueError("Query message must be a non-empty string")
+
+    graph = build_research_graph()
+    # We execute the graph to end; result contains the final state including synthesized answer
+    final_state = graph.invoke({"query": query})
+    # For now, simply log the answer. In a future iteration we may persist conversations.
+    answer = final_state.get("answer")
+    print(f"Agent {agent_id}: {answer}")

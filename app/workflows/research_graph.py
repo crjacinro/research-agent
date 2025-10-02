@@ -1,0 +1,75 @@
+from typing import Dict, List, Literal, Optional, TypedDict
+
+from langgraph.graph import END, StateGraph
+from langchain_core.prompts import ChatPromptTemplate
+
+from app.fetchers.arxiv import ArxivFetcher
+from app.fetchers.pubmed import PubMedFetcher
+from app.utils.llm import get_openai_llm
+
+
+class ResearchState(TypedDict):
+    query: str
+    domain: Optional[Literal["medical", "research"]]
+    sources: List[str]
+    answer: Optional[str]
+
+
+def _classify_domain(state: ResearchState) -> ResearchState:
+    print(f"Classifying domain for query...")
+    llm = get_openai_llm()
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are a classifier that outputs exactly one word: medical or research."),
+        ("user", "Query: {query}\nIf the given query asked about medical/clinical/health topics, output 'medical'. Else output 'research'.")
+    ])
+    chain = prompt | llm
+    response = chain.invoke({"query": state["query"]})
+    text = response.content.strip().lower()
+    domain: Literal["medical", "research"] = "medical" if "medical" in text else "research"
+    state["domain"] = domain
+    print(f"Domain identified: {domain}")
+    return state
+
+
+def _retrieve_sources(state: ResearchState) -> ResearchState:
+    print(f"Retrieving sources for query...")
+    query = state["query"]
+    domain = state.get("domain") or "research"
+    if domain == "medical":
+        fetcher = PubMedFetcher()
+        sources = fetcher.search(query)
+    else:
+        fetcher = ArxivFetcher()
+        sources = fetcher.search(query)
+    state["sources"] = sources
+    print(f"Sources identified: {sources}")
+    return state
+
+
+def _synthesize_answer(state: ResearchState) -> ResearchState:
+    llm = get_openai_llm()
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are an expert research assistant. Synthesize a helpful, well-cited, concise answer using the provided sources. Cite inline with [n]."),
+        ("user", "Query: {query}\n\nSources:\n{sources}\n\nInstructions: Provide a factual, neutral, safety-conscious answer suitable for general audiences.")
+    ])
+    sources_text = "\n\n".join(f"[{i+1}] {s}" for i, s in enumerate(state.get("sources", []))) or "No sources found"
+    chain = prompt | llm
+    response = chain.invoke({"query": state["query"], "sources": sources_text})
+    state["answer"] = response.content
+    return state
+
+
+def build_research_graph():
+    graph = StateGraph(ResearchState)
+    graph.add_node("classify", _classify_domain)
+    graph.add_node("retrieve", _retrieve_sources)
+    graph.add_node("synthesize", _synthesize_answer)
+
+    graph.set_entry_point("classify")
+    graph.add_edge("classify", "retrieve")
+    graph.add_edge("retrieve", "synthesize")
+    graph.add_edge("synthesize", END)
+
+    return graph.compile()
+
+

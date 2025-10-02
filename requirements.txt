@@ -5,7 +5,12 @@ pydantic
 beanie
 motor
 openai
+langchain
+langchain-openai
+langgraph
+langchain-community
 httpx
 pytest
 pytest-asyncio
 pymongo
+xmltodict
