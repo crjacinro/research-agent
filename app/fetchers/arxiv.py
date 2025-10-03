@@ -2,15 +2,16 @@ from typing import List
 
 from langchain_community.utilities import ArxivAPIWrapper
 
+from app.fetchers.fetcher import Fetcher, TOP_K_RESULTS, MAX_CHARACTERS
 
-class ArxivFetcher:
+class ArxivFetcher(Fetcher):
     """
     Fetcher around LangChain's ArxivAPIWrapper to fetch research papers.
     """
 
-    def __init__(self, top_k_results: int = 5, max_chars: int = 5000):
-        self.wrapper = ArxivAPIWrapper(top_k_results=top_k_results, load_all_available_meta=False)
-        self.max_chars = max_chars
+    def __init__(self):
+        self.wrapper = ArxivAPIWrapper(top_k_results=TOP_K_RESULTS, load_all_available_meta=False)
+        self.max_chars = MAX_CHARACTERS
 
     def search(self, query: str) -> List[str]:
         """
@@ -26,5 +27,3 @@ class ArxivFetcher:
                 content = content[: self.max_chars] + "..."
             results.append(content)
         return results
-
-

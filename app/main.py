@@ -9,12 +9,14 @@ from starlette.responses import JSONResponse
 
 from app.api import agents
 from app.data.entities.models import AgentInDB
+from dotenv import load_dotenv
 
+load_dotenv()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    mongodb_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
-    mongodb_db = os.getenv("MONGODB_DB", "appdb")
+    mongodb_uri = os.getenv("MONGODB_URI")
+    mongodb_db = os.getenv("MONGODB_DB")
 
     client = AsyncIOMotorClient(mongodb_uri)
     db = client[mongodb_db]

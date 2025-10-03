@@ -60,3 +60,8 @@ async def send_queries(agent_id: str, query: AgentQueries, response_model=AgentQ
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while processing the query."
+        )

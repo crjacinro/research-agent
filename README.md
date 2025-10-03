@@ -43,7 +43,6 @@ backend/
 ├── app/
 │   ├── main.py          # FastAPI application
 │   └── models.py        # Beanie models
-├── run_dev.py           # Development runner script
 ├── docker-compose.yml   # Updated for new structure
 ├── Dockerfile
 └── requirements.txt

@@ -1,15 +1,21 @@
+import os
 from typing import List
 
 from langchain_community.utilities.pubmed import PubMedAPIWrapper
 
-class PubMedFetcher:
+from app.fetchers.fetcher import Fetcher, TOP_K_RESULTS, MAX_CHARACTERS
+
+
+class PubMedFetcher(Fetcher):
     """
     Fetcher around LangChain's PubMedAPIWrapper to fetch medical literature.
     """
-
-    def __init__(self, top_k_results: int = 5, max_chars: int = 5000):
-        self.wrapper = PubMedAPIWrapper(top_k_results=top_k_results, load_max_docs=top_k_results, email="villasica.serge@gmail.com", api_key="0521afc7bb7c9e3baffcb3e5f21f7c4ca00a")
-        self.max_chars = max_chars
+    def __init__(self):
+        self.wrapper = PubMedAPIWrapper(top_k_results=TOP_K_RESULTS, load_max_docs=TOP_K_RESULTS,
+                                        email=os.getenv("PUBMED_EMAIL"),
+                                        api_key=os.getenv("PUBMED_API_KEY")
+                                        )
+        self.max_chars = MAX_CHARACTERS
 
     def search(self, query: str) -> List[str]:
         """
