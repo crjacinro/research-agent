@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
 from app.models.requests import AgentCreate, AgentQueries
-from app.models.response import AgentOut
+from app.models.response import AgentOut, AgentQueryResponseOut
 from app.services import research_service
 
 router = APIRouter(prefix="/agents", tags=["agents"])
@@ -47,13 +47,14 @@ async def delete_agent(agent_id: str):
             detail=e.args[0] if e.args else str(e)
         )
 
-@router.post("/{agent_id}/queries", status_code=status.HTTP_201_CREATED)
-async def send_queries(agent_id: str, query: AgentQueries):
+@router.post("/{agent_id}/queries", status_code=status.HTTP_200_OK)
+async def send_queries(agent_id: str, query: AgentQueries, response_model=AgentQueryResponseOut):
     """
     Sends new queries for the agent specified.
     """
     try:
-        await research_service.send_queries(agent_id, query.message)
+        agent_response, source = await research_service.send_queries(agent_id, query.message)
+        return AgentQueryResponseOut(agent_id=agent_id, response=agent_response, source=source)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

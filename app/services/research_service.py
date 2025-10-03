@@ -27,7 +27,7 @@ async def delete_agent(agent_id: str):
 
     await agent_to_delete.delete()
 
-async def send_queries(agent_id: str, query: str) -> None:
+async def send_queries(agent_id: str, query: str) -> tuple[str, str]:
     current_agent = await AgentInDB.find_one(AgentInDB.id == agent_id)
     if current_agent is None:
         raise ValueError(f"Agent with id {agent_id} does not exist")
@@ -36,8 +36,8 @@ async def send_queries(agent_id: str, query: str) -> None:
         raise ValueError("Query message must be a non-empty string")
 
     graph = build_research_graph()
-    # We execute the graph to end; result contains the final state including synthesized answer
     final_state = graph.invoke({"query": query})
-    # For now, simply log the answer. In a future iteration we may persist conversations.
     answer = final_state.get("answer")
-    print(f"Agent {agent_id}: {answer}")
+    domain = final_state.get("domain")
+
+    return answer, domain

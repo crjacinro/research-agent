@@ -5,7 +5,7 @@ from langchain_community.utilities import ArxivAPIWrapper
 
 class ArxivFetcher:
     """
-    Thin wrapper around LangChain's ArxivAPIWrapper to fetch research papers.
+    Fetcher around LangChain's ArxivAPIWrapper to fetch research papers.
     """
 
     def __init__(self, top_k_results: int = 5, max_chars: int = 5000):

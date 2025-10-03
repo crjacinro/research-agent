@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal, Optional, TypedDict
+from typing import Literal
 
 from langgraph.graph import END, StateGraph
 from langchain_core.prompts import ChatPromptTemplate
@@ -6,14 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from app.fetchers.arxiv import ArxivFetcher
 from app.fetchers.pubmed import PubMedFetcher
 from app.utils.llm import get_openai_llm
-
-
-class ResearchState(TypedDict):
-    query: str
-    domain: Optional[Literal["medical", "research"]]
-    sources: List[str]
-    answer: Optional[str]
-
+from app.workflows.research_state import ResearchState
 
 def _classify_domain(state: ResearchState) -> ResearchState:
     print(f"Classifying domain for query...")
@@ -38,9 +31,11 @@ def _retrieve_sources(state: ResearchState) -> ResearchState:
     if domain == "medical":
         fetcher = PubMedFetcher()
         sources = fetcher.search(query)
+        state["domain"] = "PubMed"
     else:
         fetcher = ArxivFetcher()
         sources = fetcher.search(query)
+        state["domain"] = "Arxiv"
     state["sources"] = sources
     print(f"Sources identified: {sources}")
     return state
