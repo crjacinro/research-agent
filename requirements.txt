@@ -17,6 +17,7 @@ langchain-openai
 langchain-community
 langchain-core
 arxiv
+wikipedia
 
 # Unit Tests
 httpx

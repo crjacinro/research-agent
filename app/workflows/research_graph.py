@@ -5,6 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from app.fetchers.arxiv import ArxivFetcher
 from app.fetchers.pubmed import PubMedFetcher
+from app.fetchers.wikipedia import WikipediaFetcher
 from app.utils.llm import get_openai_llm
 from app.workflows.research_state import ResearchState
 
@@ -12,13 +13,19 @@ def _classify_domain(state: ResearchState) -> ResearchState:
     print(f"Classifying domain for query...")
     llm = get_openai_llm()
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a classifier that outputs exactly one word: medical or research."),
-        ("user", "Query: {query}\nIf the given query asked about medical/clinical/health topics, output 'medical'. Else output 'research'.")
+        ("system", "You are a classifier that outputs exactly one word: medical, research, or wikipedia."),
+        ("user", "Query: {query}\nIf the query above is about medical/clinical/health → 'medical'. If about general factual knowledge (definitions, dates, places, encyclopedic) → 'wikipedia'. Else → 'research'.")
     ])
     chain = prompt | llm
     response = chain.invoke({"query": state["query"]})
     text = response.content.strip().lower()
-    domain: Literal["medical", "research"] = "medical" if "medical" in text else "research"
+    domain: Literal["medical", "research", "wikipedia"]
+    if "medical" in text:
+        domain = "medical"
+    elif "wikipedia" in text:
+        domain = "wikipedia"
+    else:
+        domain = "research"
     state["domain"] = domain
     print(f"Domain identified: {domain}")
     return state
@@ -32,6 +39,10 @@ def _retrieve_sources(state: ResearchState) -> ResearchState:
         fetcher = PubMedFetcher()
         sources = fetcher.search(query)
         state["domain"] = "PubMed"
+    elif domain == "wikipedia":
+        fetcher = WikipediaFetcher()
+        sources = fetcher.search(query)
+        state["domain"] = "Wikipedia"
     else:
         fetcher = ArxivFetcher()
         sources = fetcher.search(query)

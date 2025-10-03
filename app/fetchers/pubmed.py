@@ -3,7 +3,7 @@ from typing import List
 
 from langchain_community.utilities.pubmed import PubMedAPIWrapper
 
-from app.fetchers.fetcher import Fetcher, TOP_K_RESULTS, MAX_CHARACTERS
+from app.fetchers import TOP_K_RESULTS, Fetcher, MAX_CHARACTERS
 
 
 class PubMedFetcher(Fetcher):
@@ -22,7 +22,6 @@ class PubMedFetcher(Fetcher):
         Returns a list of string snippets from PubMed relevant to the query.
         """
         docs = self.wrapper.load(query)
-        print(f"Documents found: {len(docs)}")
         results: List[str] = []
         for doc in docs:
             content = (doc['Summary'] or "").strip()
