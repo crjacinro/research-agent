@@ -65,7 +65,7 @@ def _synthesize_answer(state: ResearchState) -> ResearchState:
     return state
 
 
-def build_research_graph():
+def _build_research_graph():
     graph = StateGraph(ResearchState)
     graph.add_node("classify", _classify_domain)
     graph.add_node("retrieve", _retrieve_sources)
@@ -77,5 +77,13 @@ def build_research_graph():
     graph.add_edge("synthesize", END)
 
     return graph.compile()
+
+def process_query(query: str) -> (str, str) :
+    graph = _build_research_graph()
+    final_state = graph.invoke({"query": query})
+    answer = final_state.get("answer")
+    domain = final_state.get("domain")
+
+    return answer, domain
 
 

@@ -2,7 +2,8 @@ from app.data.entities.models import AgentInDB
 from app.models.requests import AgentCreate
 from app.models.response import AgentOut, agent_in_db_to_out
 from uuid import uuid4
-from app.workflows.research_graph import build_research_graph
+from app.workflows.research_graph import build_research_graph, process_query
+
 
 async def get_agent(agent_id: str) -> AgentOut:
     current_agent = await AgentInDB.find_one(AgentInDB.id == agent_id)
@@ -35,9 +36,4 @@ async def send_queries(agent_id: str, query: str) -> tuple[str, str]:
     if not query or not query.strip():
         raise ValueError("Query message must be a non-empty string")
 
-    graph = build_research_graph()
-    final_state = graph.invoke({"query": query})
-    answer = final_state.get("answer")
-    domain = final_state.get("domain")
-
-    return answer, domain
+    return process_query(query)
