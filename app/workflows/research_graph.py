@@ -6,35 +6,39 @@ from langchain_core.prompts import ChatPromptTemplate
 from app.fetchers.arxiv import ArxivFetcher
 from app.fetchers.pubmed import PubMedFetcher
 from app.fetchers.wikipedia import WikipediaFetcher
+from app.fetchers.duckduckgo import DuckDuckGoFetcher
 from app.utils.llm import get_openai_llm
 from app.workflows.research_state import ResearchState
 
 def _classify_domain(state: ResearchState) -> ResearchState:
     print(f"Classifying domain for query...")
     llm = get_openai_llm()
+
+    system_prompt = "You are a classifier that outputs exactly one word: medical, research, wikipedia, or duckduckgo."
+    query_prompt = ("Query: {query}\n"
+                  "Classify the domain of the query above. "
+                  "If medical, clinical, health or biological → 'medical'. "
+                  "If encyclopedic, factual, trivial, or general knowledge → 'wikipedia'. "
+                  "If academic, research papers, scientific → 'research'. "
+                  "If travel/hotels/flights, current events/news, sports, or general web info → 'duckduckgo'. "
+                  "Else → 'duckduckgo'.")
+
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a classifier that outputs exactly one word: medical, research, or wikipedia."),
-        ("user", "Query: {query}\nIf the query above is about medical/clinical/health → 'medical'. If about general factual knowledge (definitions, dates, places, encyclopedic) → 'wikipedia'. Else → 'research'.")
+        ("system", system_prompt),
+        ("user", ("%s" % query_prompt))
     ])
     chain = prompt | llm
     response = chain.invoke({"query": state["query"]})
-    text = response.content.strip().lower()
-    domain: Literal["medical", "research", "wikipedia"]
-    if "medical" in text:
-        domain = "medical"
-    elif "wikipedia" in text:
-        domain = "wikipedia"
-    else:
-        domain = "research"
+    domain = response.content.strip().lower()
     state["domain"] = domain
     print(f"Domain identified: {domain}")
     return state
 
-
 def _retrieve_sources(state: ResearchState) -> ResearchState:
     print(f"Retrieving sources for query...")
     query = state["query"]
-    domain = state.get("domain") or "research"
+    domain = state.get("domain") or "duckduckgo"
+
     if domain == "medical":
         fetcher = PubMedFetcher()
         sources = fetcher.search(query)
@@ -43,14 +47,18 @@ def _retrieve_sources(state: ResearchState) -> ResearchState:
         fetcher = WikipediaFetcher()
         sources = fetcher.search(query)
         state["domain"] = "Wikipedia"
-    else:
+    elif domain == "research":
         fetcher = ArxivFetcher()
         sources = fetcher.search(query)
         state["domain"] = "Arxiv"
+    else:
+        fetcher = DuckDuckGoFetcher()
+        sources = fetcher.search(query)
+        state["domain"] = "DuckDuckGo"
+
     state["sources"] = sources
     print(f"Sources identified: {sources}")
     return state
-
 
 def _synthesize_answer(state: ResearchState) -> ResearchState:
     llm = get_openai_llm()

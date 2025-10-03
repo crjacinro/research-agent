@@ -2,7 +2,7 @@ from app.data.entities.models import AgentInDB
 from app.models.requests import AgentCreate
 from app.models.response import AgentOut, agent_in_db_to_out
 from uuid import uuid4
-from app.workflows.research_graph import build_research_graph, process_query
+from app.workflows.research_graph import process_query
 
 
 async def get_agent(agent_id: str) -> AgentOut:
