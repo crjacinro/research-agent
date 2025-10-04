@@ -3,25 +3,28 @@ from typing import Literal
 from langgraph.graph import END, StateGraph
 from langchain_core.prompts import ChatPromptTemplate
 
+from app.fetchers import Fetcher
 from app.fetchers.arxiv import ArxivFetcher
 from app.fetchers.pubmed import PubMedFetcher
 from app.fetchers.wikipedia import WikipediaFetcher
 from app.fetchers.duckduckgo import DuckDuckGoFetcher
 from app.utils.llm import get_openai_llm
+from app.workflows.research_type import ResearchType
 from app.workflows.research_state import ResearchState
 
 def _classify_domain(state: ResearchState) -> ResearchState:
     print(f"Classifying domain for query...")
     llm = get_openai_llm()
 
-    system_prompt = "You are a classifier that outputs exactly one word: medical, research, wikipedia, or duckduckgo."
+    system_prompt = (f"You are a classifier that outputs exactly one word: "
+                     f"{ResearchType.MEDICAL.name},  {ResearchType.ACADEMIC.name},  {ResearchType.KNOWLEDGE.name}, or  {ResearchType.WEB.name}.")
     query_prompt = ("Query: {query}\n"
                   "Classify the domain of the query above. "
-                  "If medical, clinical, health or biological → 'medical'. "
-                  "If encyclopedic, factual, trivial, or general knowledge → 'wikipedia'. "
-                  "If academic, research papers, scientific → 'research'. "
-                  "If travel/hotels/flights, current events/news, sports, or general web info → 'duckduckgo'. "
-                  "Else → 'duckduckgo'.")
+                  f"If medical, clinical, health or biological → '{ResearchType.MEDICAL.name}'. "
+                  f"If encyclopedic, factual, trivial, or general knowledge → '{ResearchType.KNOWLEDGE.name}'. "
+                  f"If academic, research papers, scientific → '{ResearchType.ACADEMIC.name}'. "
+                  f"If travel/hotels/flights, current events/news, sports, or general web info → '{ResearchType.WEB.name}'. "
+                  f"Else → '{ResearchType.WEB.name}'.")
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
@@ -29,33 +32,30 @@ def _classify_domain(state: ResearchState) -> ResearchState:
     ])
     chain = prompt | llm
     response = chain.invoke({"query": state["query"]})
-    domain = response.content.strip().lower()
+
+    domain: ResearchType = ResearchType[response.content.strip().upper()]
     state["domain"] = domain
     print(f"Domain identified: {domain}")
     return state
 
+def _retrieve_fetcher(domain: ResearchType) -> Fetcher:
+    if domain == ResearchType.MEDICAL:
+        return PubMedFetcher()
+    elif domain == ResearchType.KNOWLEDGE:
+        return WikipediaFetcher()
+    elif domain == ResearchType.ACADEMIC:
+        return ArxivFetcher()
+    else:
+        return DuckDuckGoFetcher()
+
 def _retrieve_sources(state: ResearchState) -> ResearchState:
     print(f"Retrieving sources for query...")
     query = state["query"]
-    domain = state.get("domain") or "duckduckgo"
+    domain = state.get("domain")
 
-    if domain == "medical":
-        fetcher = PubMedFetcher()
-        sources = fetcher.search(query)
-        state["domain"] = "PubMed"
-    elif domain == "wikipedia":
-        fetcher = WikipediaFetcher()
-        sources = fetcher.search(query)
-        state["domain"] = "Wikipedia"
-    elif domain == "research":
-        fetcher = ArxivFetcher()
-        sources = fetcher.search(query)
-        state["domain"] = "Arxiv"
-    else:
-        fetcher = DuckDuckGoFetcher()
-        sources = fetcher.search(query)
-        state["domain"] = "DuckDuckGo"
+    fetcher = _retrieve_fetcher(domain)
 
+    sources = fetcher.search(query)
     state["sources"] = sources
     print(f"Sources identified: {sources}")
     return state
@@ -71,7 +71,6 @@ def _synthesize_answer(state: ResearchState) -> ResearchState:
     response = chain.invoke({"query": state["query"], "sources": sources_text})
     state["answer"] = response.content
     return state
-
 
 def _build_research_graph():
     graph = StateGraph(ResearchState)
@@ -90,8 +89,6 @@ def process_query(query: str) -> (str, str) :
     graph = _build_research_graph()
     final_state = graph.invoke({"query": query})
     answer = final_state.get("answer")
-    domain = final_state.get("domain")
+    domain = final_state.get("domain").name.lower()
 
     return answer, domain
-
-
