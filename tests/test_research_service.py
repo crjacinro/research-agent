@@ -101,3 +101,70 @@ async def test_delete_agent_missing_raises_key_error(monkeypatch):
     assert "does not exist and cannot be deleted" in str(exc.value)
 
 
+@pytest.mark.asyncio
+async def test_send_queries_success(monkeypatch):
+    agent_id = "agent-id-123"
+    query = "What is machine learning?"
+    expected_answer = "Machine learning is a subset of artificial intelligence..."
+    expected_domain = "research"
+    
+    class FakeAgent:
+        def __init__(self, id: str):
+            self.id = id
+    
+    class AgentInDBProxy:
+        id = None
+        @staticmethod
+        async def find_one(_):
+            return FakeAgent(id=agent_id)
+    
+    def mock_process_query(query: str):
+        return expected_answer, expected_domain
+    
+    monkeypatch.setattr(research_service, "AgentInDB", AgentInDBProxy)
+    monkeypatch.setattr(research_service, "process_query", mock_process_query)
+    
+    result = await research_service.send_queries(agent_id, query)
+    
+    assert result == (expected_answer, expected_domain)
+
+
+@pytest.mark.asyncio
+async def test_send_queries_agent_not_found_raises_value_error(monkeypatch):
+    agent_id = "missing-agent"
+    query = "What is machine learning?"
+    
+    class AgentInDBProxy:
+        id = None
+        @staticmethod
+        async def find_one(_):
+            return None
+    
+    monkeypatch.setattr(research_service, "AgentInDB", AgentInDBProxy)
+    
+    with pytest.raises(ValueError) as exc:
+        await research_service.send_queries(agent_id, query)
+    
+    assert f"Agent with id {agent_id} does not exist" in str(exc.value)
+
+
+@pytest.mark.asyncio
+async def test_send_queries_empty_query_raises_value_error(monkeypatch):
+    agent_id = "agent-id-123"
+    
+    class FakeAgent:
+        def __init__(self, id: str):
+            self.id = id
+    
+    class AgentInDBProxy:
+        id = None
+        @staticmethod
+        async def find_one(_):
+            return FakeAgent(id=agent_id)
+    
+    monkeypatch.setattr(research_service, "AgentInDB", AgentInDBProxy)
+    
+    with pytest.raises(ValueError) as exc:
+        await research_service.send_queries(agent_id, "")
+    
+    assert "Query message must be a non-empty string" in str(exc.value)
