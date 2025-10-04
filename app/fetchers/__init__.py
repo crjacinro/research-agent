@@ -6,5 +6,5 @@ MAX_CHARACTERS = 5000
 
 class Fetcher(ABC):
     @abstractmethod
-    def search(self, query: str) -> List[str]:
+    def search(self, query: str) -> (List[str], List[str]):
         pass

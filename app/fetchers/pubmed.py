@@ -17,12 +17,13 @@ class PubMedFetcher(Fetcher):
                                         )
         self.max_chars = MAX_CHARACTERS
 
-    def search(self, query: str) -> List[str]:
+    def search(self, query: str) ->(List[str], List[str]):
         """
         Returns a list of string snippets from PubMed relevant to the query.
         """
         docs = self.wrapper.load(query)
         results: List[str] = []
+        documents: List[str] = []
         for doc in docs:
             content = (doc['Summary'] or "").strip()
             if not content:
@@ -30,4 +31,6 @@ class PubMedFetcher(Fetcher):
             if len(content) > self.max_chars:
                 content = content[: self.max_chars] + "..."
             results.append(content)
-        return results
+            documents.append(doc['Title'] or "Unknown source")
+        print(f"PubMedFetcher found {len(results)} summaries: {documents}")
+        return results, documents

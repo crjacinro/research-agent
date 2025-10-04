@@ -13,7 +13,6 @@ from app.workflows.research_type import ResearchType
 from app.workflows.research_state import ResearchState
 
 def _classify_domain(state: ResearchState) -> ResearchState:
-    print(f"Classifying domain for query...")
     llm = get_openai_llm()
 
     system_prompt = (f"You are a classifier that outputs exactly one word: "
@@ -55,9 +54,9 @@ def _retrieve_sources(state: ResearchState) -> ResearchState:
 
     fetcher = _retrieve_fetcher(domain)
 
-    sources = fetcher.search(query)
+    sources, documents = fetcher.search(query)
     state["sources"] = sources
-    print(f"Sources identified: {sources}")
+    state["documents"] = documents
     return state
 
 def _synthesize_answer(state: ResearchState) -> ResearchState:
@@ -85,10 +84,11 @@ def _build_research_graph():
 
     return graph.compile()
 
-def process_query(query: str) -> (str, str) :
+def process_query(query: str) -> (str, str, list[str]) :
     graph = _build_research_graph()
     final_state = graph.invoke({"query": query})
     answer = final_state.get("answer")
     domain = final_state.get("domain").name.lower()
+    documents = final_state.get("documents", [])
 
-    return answer, domain
+    return answer, domain, documents

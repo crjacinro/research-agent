@@ -14,9 +14,10 @@ class WikipediaFetcher(Fetcher):
         self.wrapper = WikipediaAPIWrapper(top_k_results=TOP_K_RESULTS, doc_content_chars_max=MAX_CHARACTERS)
         self.max_chars = MAX_CHARACTERS
 
-    def search(self, query: str) -> List[str]:
+    def search(self, query: str) -> (List[str], List[str]):
         docs = self.wrapper.load(query)
         results: List[str] = []
+        documents: List[str] = []
         for doc in docs:
             content = (getattr(doc, "page_content", "") or "").strip()
             if not content:
@@ -24,6 +25,8 @@ class WikipediaFetcher(Fetcher):
             if len(content) > self.max_chars:
                 content = content[: self.max_chars] + "..."
             results.append(content)
-        return results
+            documents.append(doc.metadata["source"] or "Unknown source")
+        print(f"WikipediaFetcher found {len(results)} summaries: {documents}")
+        return results, documents
 
 

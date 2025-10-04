@@ -57,7 +57,7 @@ class TestRetrieveSources:
     @patch('app.workflows.research_graph._retrieve_fetcher')
     def test_retrieve_sources_success(self, mock_retrieve_fetcher):
         mock_fetcher = Mock()
-        mock_fetcher.search.return_value = ["Source 1", "Source 2", "Source 3"]
+        mock_fetcher.search.return_value = (["Source 1", "Source 2", "Source 3"], ["doc1.pdf", "doc2.pdf", "doc3.pdf"])
         mock_retrieve_fetcher.return_value = mock_fetcher
         
         state = ResearchState(
@@ -69,6 +69,7 @@ class TestRetrieveSources:
         result = _retrieve_sources(state)
         
         assert result["sources"] == ["Source 1", "Source 2", "Source 3"]
+        assert result["documents"] == ["doc1.pdf", "doc2.pdf", "doc3.pdf"]
         assert result["query"] == "Test query"
         assert result["domain"] == ResearchType.MEDICAL
         mock_retrieve_fetcher.assert_called_once_with(ResearchType.MEDICAL)
@@ -77,7 +78,7 @@ class TestRetrieveSources:
     @patch('app.workflows.research_graph._retrieve_fetcher')
     def test_retrieve_sources_empty_results(self, mock_retrieve_fetcher):
         mock_fetcher = Mock()
-        mock_fetcher.search.return_value = []
+        mock_fetcher.search.return_value = ([], [])
         mock_retrieve_fetcher.return_value = mock_fetcher
         
         state = ResearchState(
@@ -89,6 +90,7 @@ class TestRetrieveSources:
         result = _retrieve_sources(state)
         
         assert result["sources"] == []
+        assert result["documents"] == []
         mock_fetcher.search.assert_called_once_with("Test query")
 
 class TestProcessQuery:
@@ -99,6 +101,7 @@ class TestProcessQuery:
             "query": "What is machine learning?",
             "domain": ResearchType.ACADEMIC,
             "sources": ["Source 1", "Source 2"],
+            "documents": ["doc1.pdf", "doc2.pdf"],
             "answer": "Machine learning is a subset of AI..."
         }
         mock_graph.invoke.return_value = mock_final_state
@@ -106,10 +109,11 @@ class TestProcessQuery:
         
         query = "What is machine learning?"
         
-        answer, domain = process_query(query)
+        answer, domain, documents = process_query(query)
         
         assert answer == "Machine learning is a subset of AI..."
         assert domain == "academic"
+        assert documents == ["doc1.pdf", "doc2.pdf"]
         mock_build_graph.assert_called_once()
         mock_graph.invoke.assert_called_once_with({"query": query})
 
@@ -130,12 +134,14 @@ class TestResearchGraphIntegration:
             query="Test query",
             domain=ResearchType.MEDICAL,
             sources=["Source 1", "Source 2"],
+            documents=["doc1.pdf", "doc2.pdf"],
             answer="Test answer"
         )
         
         assert state["query"] == "Test query"
         assert state["domain"] == ResearchType.MEDICAL
         assert state["sources"] == ["Source 1", "Source 2"]
+        assert state["documents"] == ["doc1.pdf", "doc2.pdf"]
         assert state["answer"] == "Test answer"
 
     def test_research_state_partial(self):
@@ -144,6 +150,7 @@ class TestResearchGraphIntegration:
         assert state["query"] == "Test query"
         assert state.get("domain") is None or isinstance(state.get("domain"), ResearchType)
         assert state.get("sources") is None or isinstance(state.get("sources"), list)
+        assert state.get("documents") is None or isinstance(state.get("documents"), list)
         assert state.get("answer") is None or isinstance(state.get("answer"), str)
 
     def test_research_type_enum_values(self):

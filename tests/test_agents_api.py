@@ -94,3 +94,46 @@ def test_delete_agent_not_found_returns_404(client, monkeypatch):
     assert response.json()["detail"] == "agent not found"
 
 
+def test_send_queries_success(client, monkeypatch):
+    async def fake_send_queries(agent_id: str, message: str):
+        return "Research response", "arxiv", ["doc1.pdf", "doc2.pdf"]
+
+    monkeypatch.setattr("app.services.research_service.send_queries", fake_send_queries)
+
+    payload = {"message": "What is machine learning?"}
+    response = client.post("/agents/abc123/queries", json=payload)
+
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data["agent_id"] == "abc123"
+    assert response_data["response"] == "Research response"
+    assert response_data["source"] == "arxiv"
+    assert response_data["documents"] == ["doc1.pdf", "doc2.pdf"]
+
+
+def test_send_queries_validation_error_returns_400(client, monkeypatch):
+    async def fake_send_queries(agent_id: str, message: str):
+        raise ValueError("Invalid query message")
+
+    monkeypatch.setattr("app.services.research_service.send_queries", fake_send_queries)
+
+    payload = {"message": ""}
+    response = client.post("/agents/abc123/queries", json=payload)
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid query message"
+
+
+def test_send_queries_internal_error_returns_500(client, monkeypatch):
+    async def fake_send_queries(agent_id: str, message: str):
+        raise Exception("Unexpected error")
+
+    monkeypatch.setattr("app.services.research_service.send_queries", fake_send_queries)
+
+    payload = {"message": "What is AI?"}
+    response = client.post("/agents/abc123/queries", json=payload)
+
+    assert response.status_code == 500
+    assert response.json()["detail"] == "An unexpected error occurred while processing the query."
+
+

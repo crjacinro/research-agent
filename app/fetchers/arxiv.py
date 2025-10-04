@@ -14,12 +14,13 @@ class ArxivFetcher(Fetcher):
         self.wrapper = ArxivAPIWrapper(top_k_results=TOP_K_RESULTS, load_all_available_meta=False)
         self.max_chars = MAX_CHARACTERS
 
-    def search(self, query: str) -> List[str]:
+    def search(self, query: str) -> (List[str], List[str]):
         """
         Returns a list of string snippets from arXiv relevant to the query.
         """
         docs = self.wrapper.load(query)
         results: List[str] = []
+        documents: List[str] = []
         for doc in docs:
             content = (doc.page_content or "").strip()
             if not content:
@@ -27,4 +28,6 @@ class ArxivFetcher(Fetcher):
             if len(content) > self.max_chars:
                 content = content[: self.max_chars] + "..."
             results.append(content)
-        return results
+            documents.append(doc.metadata["Title"] or "Unknown source")
+        print(f"ArxivFetcher found {len(results)} documents: {documents}")
+        return results, documents

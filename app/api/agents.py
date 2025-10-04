@@ -53,8 +53,8 @@ async def send_queries(agent_id: str, query: AgentQueries, response_model=AgentQ
     Sends new queries for the agent specified.
     """
     try:
-        agent_response, source = await research_service.send_queries(agent_id, query.message)
-        return AgentQueryResponseOut(agent_id=agent_id, response=agent_response, source=source)
+        agent_response, source, documents = await research_service.send_queries(agent_id, query.message)
+        return AgentQueryResponseOut(agent_id=agent_id, response=agent_response, source=source, documents=documents)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

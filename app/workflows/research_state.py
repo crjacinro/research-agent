@@ -6,5 +6,6 @@ from app.workflows.research_type import ResearchType
 class ResearchState(TypedDict):
     query: str
     domain: ResearchType = ResearchType.WEB
-    sources: List[str]
+    sources: List[str] = []
+    documents: List[str] = []
     answer: Optional[str]
