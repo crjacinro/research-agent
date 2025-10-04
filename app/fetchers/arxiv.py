@@ -14,7 +14,7 @@ class ArxivFetcher(Fetcher):
         self.wrapper = ArxivAPIWrapper(top_k_results=TOP_K_RESULTS, load_all_available_meta=False)
         self.max_chars = MAX_CHARACTERS
 
-    def search(self, query: str) -> (List[str], List[str]):
+    def search(self, query: str, terms:str="") -> (List[str], List[str]):
         """
         Returns a list of string snippets from arXiv relevant to the query.
         """

@@ -28,7 +28,7 @@ async def delete_agent(agent_id: str):
 
     await agent_to_delete.delete()
 
-async def send_queries(agent_id: str, query: str) -> tuple[str, str]:
+async def send_queries(agent_id: str, query: str) -> tuple[str, str, list[str]]:
     current_agent = await AgentInDB.find_one(AgentInDB.id == agent_id)
     if current_agent is None:
         raise ValueError(f"Agent with id {agent_id} does not exist")

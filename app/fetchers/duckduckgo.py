@@ -16,7 +16,7 @@ class DuckDuckGoFetcher(Fetcher):
         self.max_chars = MAX_CHARACTERS
         self.top_k = TOP_K_RESULTS
 
-    def search(self, query: str) -> (List[str], List[str]):
+    def search(self, query: str, terms:str="") -> (List[str], List[str]):
         results_raw = self.wrapper.results(query, max_results=self.top_k)
         results: List[str] = []
         documents: List[str] = []

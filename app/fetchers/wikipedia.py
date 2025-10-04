@@ -14,7 +14,7 @@ class WikipediaFetcher(Fetcher):
         self.wrapper = WikipediaAPIWrapper(top_k_results=TOP_K_RESULTS, doc_content_chars_max=MAX_CHARACTERS)
         self.max_chars = MAX_CHARACTERS
 
-    def search(self, query: str) -> (List[str], List[str]):
+    def search(self, query: str, terms:str="") -> (List[str], List[str]):
         docs = self.wrapper.load(query)
         results: List[str] = []
         documents: List[str] = []

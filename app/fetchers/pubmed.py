@@ -17,11 +17,11 @@ class PubMedFetcher(Fetcher):
                                         )
         self.max_chars = MAX_CHARACTERS
 
-    def search(self, query: str) ->(List[str], List[str]):
+    def search(self, query: str, terms:str="") ->(List[str], List[str]):
         """
-        Returns a list of string snippets from PubMed relevant to the query.
+        Returns a list of string snippets from PubMed relevant to the terms.
         """
-        docs = self.wrapper.load(query)
+        docs = self.wrapper.load(terms)
         results: List[str] = []
         documents: List[str] = []
         for doc in docs:
