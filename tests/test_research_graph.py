@@ -11,6 +11,7 @@ from app.workflows.research_graph import (
 )
 from app.workflows.research_type import ResearchType
 from app.workflows.research_state import ResearchState
+from app.models.query_result import QueryResult
 
 class TestRetrieveFetcher:
     @patch('app.workflows.research_graph.PubMedFetcher')
@@ -111,11 +112,12 @@ class TestProcessQuery:
         
         query = "What is machine learning?"
         
-        answer, domain, documents = process_query(query)
+        result = process_query(query)
         
-        assert answer == "Machine learning is a subset of AI..."
-        assert domain == "academic"
-        assert documents == ["doc1.pdf", "doc2.pdf"]
+        assert isinstance(result, QueryResult)
+        assert result.agent_response == "Machine learning is a subset of AI..."
+        assert result.source == "academic"
+        assert result.documents == ["doc1.pdf", "doc2.pdf"]
         mock_build_graph.assert_called_once()
         mock_graph.invoke.assert_called_once_with({"query": query, "domain": ResearchType.WEB})
 
@@ -135,11 +137,12 @@ class TestProcessQuery:
         
         query = "What are the symptoms of diabetes?"
         
-        answer, domain, documents = process_query(query)
+        result = process_query(query)
         
-        assert answer == "Diabetes symptoms include increased thirst, frequent urination..."
-        assert domain == "medical"
-        assert documents == ["medical_doc1.pdf", "medical_doc2.pdf"]
+        assert isinstance(result, QueryResult)
+        assert result.agent_response == "Diabetes symptoms include increased thirst, frequent urination..."
+        assert result.source == "medical"
+        assert result.documents == ["medical_doc1.pdf", "medical_doc2.pdf"]
         mock_graph.invoke.assert_called_once_with({"query": query, "domain": ResearchType.WEB})
 
 class TestResearchGraphIntegration:

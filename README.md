@@ -65,10 +65,8 @@ The easiest way to get started is using Docker Compose, which sets up the applic
    cd research-agent/backend
    ```
 
-2. **Configure environment variables**:
-   The application uses the following environment variables (already configured in docker-compose.yml):
-   - `MONGODB_URI`: MongoDB connection string
-   - `MONGODB_DB`: Database name
+2. **Configure environment variables **:
+   The application uses the following environment variables (Please configure in docker-compose.yml):
    - `OPENAI_API_KEY`: Your OpenAI API key
    - `PUBMED_API_KEY`: PubMed API key
    - `PUBMED_EMAIL`: Email for PubMed API

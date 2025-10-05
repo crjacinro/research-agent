@@ -11,6 +11,7 @@ from app.fetchers.duckduckgo import DuckDuckGoFetcher
 from app.utils.llm import get_openai_llm
 from app.workflows.research_type import ResearchType
 from app.workflows.research_state import ResearchState
+from app.models.query_result import QueryResult
 
 def _classify_domain(state: ResearchState) -> ResearchState:
     llm = get_openai_llm()
@@ -115,11 +116,15 @@ def _build_research_graph():
 
     return graph.compile()
 
-def process_query(query: str) -> (str, str, list[str]) :
+def process_query(query: str) -> QueryResult:
     graph = _build_research_graph()
     final_state = graph.invoke({"query": query, "domain": ResearchType.WEB})
     answer = final_state.get("answer")
     domain = final_state.get("domain").name.lower()
     documents = final_state.get("documents", [])
 
-    return answer, domain, documents
+    return QueryResult(
+        agent_response=answer,
+        source=domain,
+        documents=documents
+    )

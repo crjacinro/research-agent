@@ -3,7 +3,7 @@ import os
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
-from app.data.entities.models import AgentInDB
+from app.data.entities.models import AgentInDB, ConversationInDB
 
 _client: AsyncIOMotorClient | None = None
 _db: AsyncIOMotorDatabase | None = None
@@ -20,7 +20,7 @@ async def init_db():
     _client = AsyncIOMotorClient(mongodb_uri)
     _db = _client[mongodb_db]
 
-    await init_beanie(database=_db, document_models=[AgentInDB])
+    await init_beanie(database=_db, document_models=[AgentInDB, ConversationInDB])
 
     print("✅ MongoDB + Beanie initialized.")
 

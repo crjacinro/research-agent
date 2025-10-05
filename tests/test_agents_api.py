@@ -95,8 +95,14 @@ def test_delete_agent_not_found_returns_404(client, monkeypatch):
 
 
 def test_send_queries_success(client, monkeypatch):
+    from app.models.query_result import QueryResult
+    
     async def fake_send_queries(agent_id: str, message: str):
-        return "Research response", "arxiv", ["doc1.pdf", "doc2.pdf"]
+        return QueryResult(
+            agent_response="Research response",
+            source="arxiv",
+            documents=["doc1.pdf", "doc2.pdf"]
+        )
 
     monkeypatch.setattr("app.services.research_service.send_queries", fake_send_queries)
 

@@ -3,6 +3,7 @@ from uuid import UUID
 import pytest
 
 from app.models.requests import AgentCreate
+from app.models.query_result import QueryResult
 from app.services import research_service
 
 @pytest.mark.asyncio
@@ -97,22 +98,25 @@ async def test_send_queries_success(monkeypatch):
     expected_domain = "research"
     expected_documents = ["doc1.pdf", "doc2.pdf"]
     
-    class FakeAgent:
-        def __init__(self, id: str):
-            self.id = id
-    
-    async def mock_get_agent_entity(agent_id: str):
-        return FakeAgent(id=agent_id)
+    async def mock_add_conversations(agent_id: str, query: str, query_result: QueryResult):
+        pass  # Mock function that does nothing
     
     def mock_process_query(query: str):
-        return expected_answer, expected_domain, expected_documents
+        return QueryResult(
+            agent_response=expected_answer,
+            source=expected_domain,
+            documents=expected_documents
+        )
     
-    monkeypatch.setattr(research_service, "get_agent_entity", mock_get_agent_entity)
+    monkeypatch.setattr(research_service, "add_conversations", mock_add_conversations)
     monkeypatch.setattr(research_service, "process_query", mock_process_query)
     
     result = await research_service.send_queries(agent_id, query)
     
-    assert result == (expected_answer, expected_domain, expected_documents)
+    assert isinstance(result, QueryResult)
+    assert result.agent_response == expected_answer
+    assert result.source == expected_domain
+    assert result.documents == expected_documents
 
 
 @pytest.mark.asyncio
@@ -120,10 +124,18 @@ async def test_send_queries_agent_not_found_raises_value_error(monkeypatch):
     agent_id = "missing-agent"
     query = "What is machine learning?"
     
-    async def mock_get_agent_entity(agent_id: str):
+    def mock_process_query(query: str):
+        return QueryResult(
+            agent_response="Test response",
+            source="test",
+            documents=["doc1.pdf"]
+        )
+    
+    async def mock_add_conversations(agent_id: str, query: str, query_result: QueryResult):
         raise KeyError(f"Agent with id {agent_id} does not exist and cannot be retrieved")
     
-    monkeypatch.setattr(research_service, "get_agent_entity", mock_get_agent_entity)
+    monkeypatch.setattr(research_service, "process_query", mock_process_query)
+    monkeypatch.setattr(research_service, "add_conversations", mock_add_conversations)
     
     with pytest.raises(KeyError) as exc:
         await research_service.send_queries(agent_id, query)

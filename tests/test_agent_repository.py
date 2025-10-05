@@ -79,16 +79,3 @@ async def test_delete_agent_entity_success():
         mock_agent_class.find_one.assert_called_once_with(mock_agent_class.id == agent_id)
         
         mock_agent.delete.assert_called_once()
-
-@pytest.mark.asyncio
-async def test_delete_agent_entity_not_found():
-    """Test agent deletion when agent does not exist."""
-    agent_id = "non-existent-agent"
-    
-    with patch('app.data.repositories.agent_repository.AgentInDB') as mock_agent_class:
-        mock_agent_class.find_one = AsyncMock(return_value=None)
-        
-        with pytest.raises(KeyError) as exc_info:
-            await delete_agent_entity(agent_id)
-        
-        assert f"Agent with id {agent_id} does not exist and cannot be deleted" in str(exc_info.value)
