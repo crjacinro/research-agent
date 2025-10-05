@@ -49,8 +49,8 @@ async def delete_agent(agent_id: str):
             detail=e.args[0] if e.args else str(e)
         )
 
-@router.post("/{agent_id}/queries", status_code=status.HTTP_200_OK)
-async def send_queries(agent_id: str, query: AgentQueries, response_model=AgentQueryResponseOut):
+@router.post("/{agent_id}/queries", response_model=AgentQueryResponseOut, status_code=status.HTTP_201_CREATED)
+async def send_queries(agent_id: str, query: AgentQueries):
     """
     Sends new queries for the agent specified.
     """
