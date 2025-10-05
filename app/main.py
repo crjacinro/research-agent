@@ -1,31 +1,21 @@
-import os
+import traceback
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, status, Request
 from fastapi.exceptions import RequestValidationError
-from motor.motor_asyncio import AsyncIOMotorClient
-from beanie import init_beanie
 from starlette.responses import JSONResponse
 
 from app.api import agents
-from app.data.entities.models import AgentInDB
+from app.core.db import init_db, close_db
 from dotenv import load_dotenv
 
 load_dotenv()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    mongodb_uri = os.getenv("MONGODB_URI")
-    mongodb_db = os.getenv("MONGODB_DB")
-
-    client = AsyncIOMotorClient(mongodb_uri)
-    db = client[mongodb_db]
-
-    await init_beanie(database=db, document_models=[AgentInDB])
-    
+    await init_db()
     yield
-    
-    client.close()
+    await close_db()
 
 def create_app() -> FastAPI:
     fastapi_app = FastAPI(title="Research Agent API", version="1.0", lifespan=lifespan)
@@ -41,5 +31,16 @@ async def validation_exception_handler(_: Request, exc: RequestValidationError):
     """
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
-        content={"detail": "Bad Request: Invalid data provided.", "errors": exc.errors()}
+        content={"message": "Bad Request: Invalid data provided.", "errors": exc.errors()}
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(_: Request):
+    """
+    Handles all unhandled exceptions in the application.
+    """
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"message": "An unexpected error occurred while processing the request."},
     )

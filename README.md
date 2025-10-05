@@ -11,36 +11,40 @@ The Research Agent Backend is an intelligent research assistant that automatical
 ```
 backend/
 ├── app/
-│   ├── main.py                     # FastAPI application entry point
+│   ├── main.py                         # FastAPI application entry point
 │   ├── api/
-│   │   └── agents.py               # Agent management API endpoints
+│   │   └── agents.py                   # Agent management API endpoints
+│   ├── core/
+│   │   └── db.py                       # Database connection and initialization
 │   ├── data/
-│   │   └── entities/
-│   │       └── models.py           # MongoDB data models
-│   ├── fetchers/                   # Research source integrations
-│   │   ├── arxiv.py                # ArXiv academic papers
-│   │   ├── pubmed.py               # PubMed medical literature
-│   │   ├── wikipedia.py            # Wikipedia knowledge base
-│   │   └── duckduckgo.py           # Web search capabilities
+│   │   ├── entities/
+│   │   │   └── models.py               # MongoDB data models
+│   │   └── repositories/
+│   │       └── agents_repository.py    # Repository layer for agent entities
+│   ├── fetchers/                       # Research source integrations
+│   │   ├── arxiv.py                    # ArXiv academic papers
+│   │   ├── pubmed.py                   # PubMed medical literature
+│   │   ├── wikipedia.py                # Wikipedia knowledge base
+│   │   └── duckduckgo.py               # Web search capabilities
 │   ├── models/
-│   │   ├── requests.py             # API request models
-│   │   └── response.py             # API response models
+│   │   ├── requests.py                 # API request models
+│   │   └── response.py                 # API response models
 │   ├── services/
-│   │   └── research_service.py     # Core business logic
+│   │   └── research_service.py         # Core business logic
 │   ├── utils/
-│   │   └── llm.py                  # LLM configuration and utilities
+│   │   └── llm.py                      # LLM configuration and utilities
 │   └── workflows/
-│       ├── research_graph.py       # LangGraph workflow orchestration
-│       ├── research_state.py       # Workflow state management
-│       └── research_type.py        # Domain classification types
-├── tests/                          # Comprehensive test suite
-│   ├── test_agents_api.py          # API endpoint tests
-│   ├── test_research_graph.py      # Workflow tests
-│   └── test_research_service.py    # Service layer tests
-├── docker-compose.yml              # Multi-service Docker setup
-├── Dockerfile                      # Application containerization
-├── requirements.txt                # Python dependencies
-└── pytest.ini                      # Test configuration
+│       ├── research_graph.py           # LangGraph workflow orchestration
+│       ├── research_state.py           # Workflow state management
+│       └── research_type.py            # Domain classification types
+├── tests/                              # Comprehensive test suite
+│   ├── test_agents_api.py              # API endpoint tests
+│   ├── test_research_graph.py          # Workflow tests
+│   └── test_research_service.py        # Service layer tests
+├── docker-compose.yml                  # Multi-service Docker setup
+├── Dockerfile                          # Application containerization
+├── requirements.txt                    # Python dependencies
+└── pytest.ini                          # Test configuration
 ```
 
 ## Quick Start with Docker

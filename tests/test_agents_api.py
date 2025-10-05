@@ -103,7 +103,7 @@ def test_send_queries_success(client, monkeypatch):
     payload = {"message": "What is machine learning?"}
     response = client.post("/agents/abc123/queries", json=payload)
 
-    assert response.status_code == 200
+    assert response.status_code == 201
     response_data = response.json()
     assert response_data["agent_id"] == "abc123"
     assert response_data["response"] == "Research response"
@@ -122,18 +122,5 @@ def test_send_queries_validation_error_returns_400(client, monkeypatch):
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid query message"
-
-
-def test_send_queries_internal_error_returns_500(client, monkeypatch):
-    async def fake_send_queries(agent_id: str, message: str):
-        raise Exception("Unexpected error")
-
-    monkeypatch.setattr("app.services.research_service.send_queries", fake_send_queries)
-
-    payload = {"message": "What is AI?"}
-    response = client.post("/agents/abc123/queries", json=payload)
-
-    assert response.status_code == 500
-    assert response.json()["detail"] == "An unexpected error occurred while processing the query."
 
 

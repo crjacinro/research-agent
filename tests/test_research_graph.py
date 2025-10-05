@@ -160,20 +160,17 @@ class TestResearchGraphIntegration:
     @patch('app.workflows.research_graph._synthesize_answer')
     def test_medical_query_flow(self, mock_synthesize, mock_retrieve, mock_identify, mock_classify):
         """Test that medical queries go through identify -> retrieve -> synthesize"""
-        # Mock the classify function to return medical domain
         mock_classify.return_value = ResearchState(
             query="What are diabetes symptoms?",
             domain=ResearchType.MEDICAL
         )
         
-        # Mock the identify function to return medical terms
         mock_identify.return_value = ResearchState(
             query="What are diabetes symptoms?",
             domain=ResearchType.MEDICAL,
             terms="diabetes, symptoms, blood sugar"
         )
         
-        # Mock the retrieve function
         mock_retrieve.return_value = ResearchState(
             query="What are diabetes symptoms?",
             domain=ResearchType.MEDICAL,
@@ -182,7 +179,6 @@ class TestResearchGraphIntegration:
             documents=["doc1.pdf"]
         )
         
-        # Mock the synthesize function
         mock_synthesize.return_value = ResearchState(
             query="What are diabetes symptoms?",
             domain=ResearchType.MEDICAL,
@@ -193,9 +189,8 @@ class TestResearchGraphIntegration:
         )
         
         graph = _build_research_graph()
-        result = graph.invoke({"query": "What are diabetes symptoms?", "domain": ResearchType.WEB})
+        graph.invoke({"query": "What are diabetes symptoms?", "domain": ResearchType.WEB})
         
-        # Verify all functions were called in the correct order
         mock_classify.assert_called_once()
         mock_identify.assert_called_once()
         mock_retrieve.assert_called_once()
@@ -206,13 +201,11 @@ class TestResearchGraphIntegration:
     @patch('app.workflows.research_graph._synthesize_answer')
     def test_non_medical_query_flow(self, mock_synthesize, mock_retrieve, mock_classify):
         """Test that non-medical queries skip identify and go directly to retrieve -> synthesize"""
-        # Mock the classify function to return academic domain
         mock_classify.return_value = ResearchState(
             query="What is machine learning?",
             domain=ResearchType.ACADEMIC
         )
         
-        # Mock the retrieve function
         mock_retrieve.return_value = ResearchState(
             query="What is machine learning?",
             domain=ResearchType.ACADEMIC,
@@ -220,7 +213,6 @@ class TestResearchGraphIntegration:
             documents=["paper1.pdf"]
         )
         
-        # Mock the synthesize function
         mock_synthesize.return_value = ResearchState(
             query="What is machine learning?",
             domain=ResearchType.ACADEMIC,
@@ -230,16 +222,12 @@ class TestResearchGraphIntegration:
         )
         
         graph = _build_research_graph()
-        result = graph.invoke({"query": "What is machine learning?", "domain": ResearchType.WEB})
+        graph.invoke({"query": "What is machine learning?", "domain": ResearchType.WEB})
         
-        # Verify classify, retrieve, and synthesize were called, but identify was not
         mock_classify.assert_called_once()
         mock_retrieve.assert_called_once()
         mock_synthesize.assert_called_once()
         
-        # Verify identify was not called (it should be skipped for non-medical queries)
-        # This is implicit in the conditional routing logic
-
     def test_research_state_typing(self):
         state = ResearchState(
             query="Test query",
@@ -345,23 +333,15 @@ class TestIdentifyMedicalTerms:
 
     def test_identify_medical_terms_state_structure(self):
         """Test that the function maintains proper state structure"""
-        # This is a basic test to ensure the function doesn't crash
-        # and maintains the expected state structure
         state = ResearchState(
             query="What are the symptoms of diabetes?",
             domain=ResearchType.MEDICAL
         )
 
-        # We can't easily test the LLM interaction without complex mocking,
-        # but we can test that the function doesn't crash and returns a state
         try:
-            # This will fail in a real environment without proper LLM setup,
-            # but we can catch the expected error type
             result = _identify_medical_terms(state)
-            # If it succeeds, check the structure
             assert isinstance(result, dict)
             assert "query" in result
             assert "domain" in result
         except Exception as e:
-            # Expected to fail without proper LLM setup, but should be a specific error type
             assert "OpenAI" in str(e) or "API" in str(e) or "key" in str(e).lower()

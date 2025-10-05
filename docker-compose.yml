@@ -9,9 +9,9 @@ services:
       - PYTHONUNBUFFERED=1
       - MONGODB_URI=mongodb://mongo:example@mongodb:27017/?authSource=admin
       - MONGODB_DB=appdb
-      - OPENAI_API_KEY=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
-      - PUBMED_API_KEY=0521afc7bb7c9e3baffcb3e5f21f7c4ca00a
-      - PUBMED_EMAIL=villasica.serge@gmail.com
+      - OPENAI_API_KEY=sk-...
+      - PUBMED_API_KEY=...
+      - PUBMED_EMAIL=...
     # Uncomment to enable live reload in development:
     volumes:
      - .:/app

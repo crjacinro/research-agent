@@ -1,5 +1,3 @@
-import traceback
-
 from fastapi import APIRouter, HTTPException, status
 
 from app.models.requests import AgentCreate, AgentQueries
@@ -61,10 +59,4 @@ async def send_queries(agent_id: str, query: AgentQueries):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
-        )
-    except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred while processing the query."
         )
