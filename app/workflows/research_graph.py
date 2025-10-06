@@ -79,7 +79,7 @@ def _retrieve_sources(state: ResearchState) -> ResearchState:
     fetcher_result: FetcherResult = fetcher.search(query, terms)
 
     # Check if medical domain returned empty results and fallback to web search
-    if domain == ResearchType.MEDICAL and (not fetcher_result.raw_sources or not fetcher_result.documents):
+    if domain != ResearchType.WEB and (not fetcher_result.raw_sources or not fetcher_result.documents):
         print(f"PubMed returned empty results, falling back to web search...")
         web_fetcher = DuckDuckGoFetcher()
         fallback_result: FetcherResult = web_fetcher.search(query, terms)

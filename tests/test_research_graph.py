@@ -106,7 +106,6 @@ class TestRetrieveSources:
     @patch('app.workflows.research_graph._retrieve_fetcher')
     def test_retrieve_sources_medical_fallback(self, mock_retrieve_fetcher, mock_duckduckgo_fetcher):
         """Test that medical domain falls back to DuckDuckGo when PubMed returns empty results"""
-        # Mock PubMed fetcher returning empty results
         mock_pubmed_fetcher = Mock()
         mock_pubmed_fetcher.search.return_value = FetcherResult(
             raw_sources=[],
@@ -114,7 +113,6 @@ class TestRetrieveSources:
         )
         mock_retrieve_fetcher.return_value = mock_pubmed_fetcher
         
-        # Mock DuckDuckGo fetcher returning results
         mock_web_fetcher = Mock()
         mock_web_fetcher.search.return_value = FetcherResult(
             raw_sources=["Web source 1", "Web source 2"],
@@ -131,15 +129,12 @@ class TestRetrieveSources:
         
         result = _retrieve_sources(state)
         
-        # Should use fallback results from DuckDuckGo
         assert result["sources"] == ["Web source 1", "Web source 2"]
         assert result["documents"] == ["web_doc1.pdf", "web_doc2.pdf"]
         
-        # Verify PubMed was called first
         mock_retrieve_fetcher.assert_called_once_with(ResearchType.MEDICAL)
         mock_pubmed_fetcher.search.assert_called_once_with("Test medical query", "diabetes, insulin")
         
-        # Verify DuckDuckGo fallback was called
         mock_duckduckgo_fetcher.assert_called_once()
         mock_web_fetcher.search.assert_called_once_with("Test medical query", "diabetes, insulin")
 
