@@ -56,7 +56,7 @@ async def send_queries(agent_id: str, query: AgentQueries):
         query_result = await research_service.send_queries(agent_id, query.message)
         return AgentQueryResponseOut(agent_id=agent_id,
                                      response=query_result.agent_response,
-                                     source=query_result.source,
+                                     domain=query_result.domain,
                                      documents=query_result.documents)
     except ValueError as e:
         raise HTTPException(

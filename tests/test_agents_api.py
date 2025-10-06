@@ -95,12 +95,12 @@ def test_delete_agent_not_found_returns_404(client, monkeypatch):
 
 
 def test_send_queries_success(client, monkeypatch):
-    from app.models.query_result import QueryResult
+    from app.models.results import QueryResult
     
     async def fake_send_queries(agent_id: str, message: str):
         return QueryResult(
             agent_response="Research response",
-            source="arxiv",
+            domain="arxiv",
             documents=["doc1.pdf", "doc2.pdf"]
         )
 
@@ -113,7 +113,7 @@ def test_send_queries_success(client, monkeypatch):
     response_data = response.json()
     assert response_data["agent_id"] == "abc123"
     assert response_data["response"] == "Research response"
-    assert response_data["source"] == "arxiv"
+    assert response_data["domain"] == "arxiv"
     assert response_data["documents"] == ["doc1.pdf", "doc2.pdf"]
 
 

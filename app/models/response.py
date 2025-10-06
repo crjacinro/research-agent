@@ -9,7 +9,7 @@ class AgentOut(BaseModel):
 
 class AgentQueryResponseOut(BaseModel):
     agent_id: str = Field(..., description="Unique identifier for the research agent")
-    source: str = Field(..., description="Source used based on the query type")
+    domain: str = Field(..., description="Domain based on the query type")
     documents: list[str] = Field(..., description="List of documents used by the source")
     response: str = Field(..., description="Response from the research agent to the query")
 

@@ -2,7 +2,7 @@ from app.data.repositories.agent_repository import create_agent_entity, delete_a
     add_conversations
 from app.models.requests import AgentCreate
 from app.models.response import AgentOut, agent_in_db_to_out
-from app.models.query_result import QueryResult
+from app.models.results import QueryResult
 from uuid import uuid4
 from app.workflows.research_graph import process_query
 

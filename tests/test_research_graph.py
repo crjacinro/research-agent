@@ -11,7 +11,7 @@ from app.workflows.research_graph import (
 )
 from app.workflows.research_type import ResearchType
 from app.workflows.research_state import ResearchState
-from app.models.query_result import QueryResult
+from app.models.results import QueryResult, FetcherResult
 
 class TestRetrieveFetcher:
     @patch('app.workflows.research_graph.PubMedFetcher')
@@ -59,7 +59,10 @@ class TestRetrieveSources:
     @patch('app.workflows.research_graph._retrieve_fetcher')
     def test_retrieve_sources_with_terms(self, mock_retrieve_fetcher):
         mock_fetcher = Mock()
-        mock_fetcher.search.return_value = (["Source 1", "Source 2", "Source 3"], ["doc1.pdf", "doc2.pdf", "doc3.pdf"])
+        mock_fetcher.search.return_value = FetcherResult(
+            raw_sources=["Source 1", "Source 2", "Source 3"],
+            documents=["doc1.pdf", "doc2.pdf", "doc3.pdf"]
+        )
         mock_retrieve_fetcher.return_value = mock_fetcher
         
         state = ResearchState(
@@ -81,7 +84,10 @@ class TestRetrieveSources:
     @patch('app.workflows.research_graph._retrieve_fetcher')
     def test_retrieve_sources_empty_results(self, mock_retrieve_fetcher):
         mock_fetcher = Mock()
-        mock_fetcher.search.return_value = ([], [])
+        mock_fetcher.search.return_value = FetcherResult(
+            raw_sources=[],
+            documents=[]
+        )
         mock_retrieve_fetcher.return_value = mock_fetcher
         
         state = ResearchState(
@@ -116,7 +122,7 @@ class TestProcessQuery:
         
         assert isinstance(result, QueryResult)
         assert result.agent_response == "Machine learning is a subset of AI..."
-        assert result.source == "academic"
+        assert result.domain == "academic"
         assert result.documents == ["doc1.pdf", "doc2.pdf"]
         mock_build_graph.assert_called_once()
         mock_graph.invoke.assert_called_once_with({"query": query, "domain": ResearchType.WEB})
@@ -141,7 +147,7 @@ class TestProcessQuery:
         
         assert isinstance(result, QueryResult)
         assert result.agent_response == "Diabetes symptoms include increased thirst, frequent urination..."
-        assert result.source == "medical"
+        assert result.domain == "medical"
         assert result.documents == ["medical_doc1.pdf", "medical_doc2.pdf"]
         mock_graph.invoke.assert_called_once_with({"query": query, "domain": ResearchType.WEB})
 

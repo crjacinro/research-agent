@@ -3,6 +3,7 @@ from typing import List
 from langchain_community.utilities import WikipediaAPIWrapper
 
 from app.fetchers import Fetcher, MAX_CHARACTERS, TOP_K_RESULTS
+from app.models.results import FetcherResult
 
 
 class WikipediaFetcher(Fetcher):
@@ -14,7 +15,7 @@ class WikipediaFetcher(Fetcher):
         self.wrapper = WikipediaAPIWrapper(top_k_results=TOP_K_RESULTS, doc_content_chars_max=MAX_CHARACTERS)
         self.max_chars = MAX_CHARACTERS
 
-    def search(self, query: str, terms:str="") -> (List[str], List[str]):
+    def search(self, query: str, terms:str="") -> FetcherResult:
         docs = self.wrapper.load(query)
         results: List[str] = []
         documents: List[str] = []
@@ -27,6 +28,6 @@ class WikipediaFetcher(Fetcher):
             results.append(content)
             documents.append(doc.metadata["source"] or "Unknown source")
         print(f"WikipediaFetcher found {len(results)} summaries: {documents}")
-        return results, documents
+        return FetcherResult(results, documents)
 
 

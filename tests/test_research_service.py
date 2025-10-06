@@ -3,7 +3,7 @@ from uuid import UUID
 import pytest
 
 from app.models.requests import AgentCreate
-from app.models.query_result import QueryResult
+from app.models.results import QueryResult
 from app.services import research_service
 
 @pytest.mark.asyncio
@@ -104,7 +104,7 @@ async def test_send_queries_success(monkeypatch):
     def mock_process_query(query: str):
         return QueryResult(
             agent_response=expected_answer,
-            source=expected_domain,
+            domain=expected_domain,
             documents=expected_documents
         )
     
@@ -115,7 +115,7 @@ async def test_send_queries_success(monkeypatch):
     
     assert isinstance(result, QueryResult)
     assert result.agent_response == expected_answer
-    assert result.source == expected_domain
+    assert result.domain == expected_domain
     assert result.documents == expected_documents
 
 
@@ -127,7 +127,7 @@ async def test_send_queries_agent_not_found_raises_value_error(monkeypatch):
     def mock_process_query(query: str):
         return QueryResult(
             agent_response="Test response",
-            source="test",
+            domain="test",
             documents=["doc1.pdf"]
         )
     

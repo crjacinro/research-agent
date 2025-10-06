@@ -4,6 +4,7 @@ from typing import List
 from langchain_community.utilities.pubmed import PubMedAPIWrapper
 
 from app.fetchers import TOP_K_RESULTS, Fetcher, MAX_CHARACTERS
+from app.models.results import FetcherResult
 
 
 class PubMedFetcher(Fetcher):
@@ -17,7 +18,7 @@ class PubMedFetcher(Fetcher):
                                         )
         self.max_chars = MAX_CHARACTERS
 
-    def search(self, query: str, terms:str="") ->(List[str], List[str]):
+    def search(self, query: str, terms:str="") -> FetcherResult:
         """
         Returns a list of string snippets from PubMed relevant to the terms.
         """
@@ -33,4 +34,4 @@ class PubMedFetcher(Fetcher):
             results.append(content)
             documents.append(doc['Title'] or "Unknown source")
         print(f"PubMedFetcher found {len(results)} summaries: {documents}")
-        return results, documents
+        return FetcherResult(results, documents)

@@ -1,5 +1,3 @@
-from typing import Literal
-
 from langgraph.graph import END, StateGraph
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -11,7 +9,8 @@ from app.fetchers.duckduckgo import DuckDuckGoFetcher
 from app.utils.llm import get_openai_llm
 from app.workflows.research_type import ResearchType
 from app.workflows.research_state import ResearchState
-from app.models.query_result import QueryResult
+from app.models.results import QueryResult, FetcherResult
+
 
 def _classify_domain(state: ResearchState) -> ResearchState:
     llm = get_openai_llm()
@@ -77,10 +76,10 @@ def _retrieve_sources(state: ResearchState) -> ResearchState:
     domain = state.get("domain")
 
     fetcher = _retrieve_fetcher(domain)
+    fetcher_result: FetcherResult = fetcher.search(query, terms)
 
-    sources, documents = fetcher.search(query, terms)
-    state["sources"] = sources
-    state["documents"] = documents
+    state["sources"] = fetcher_result.raw_sources
+    state["documents"] = fetcher_result.documents
     return state
 
 def _synthesize_answer(state: ResearchState) -> ResearchState:
@@ -125,6 +124,6 @@ def process_query(query: str) -> QueryResult:
 
     return QueryResult(
         agent_response=answer,
-        source=domain,
+        domain=domain,
         documents=documents
     )

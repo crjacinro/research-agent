@@ -3,6 +3,7 @@ from typing import List
 from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
 
 from app.fetchers import Fetcher, TOP_K_RESULTS, MAX_CHARACTERS
+from app.models.results import FetcherResult
 
 
 class DuckDuckGoFetcher(Fetcher):
@@ -16,7 +17,7 @@ class DuckDuckGoFetcher(Fetcher):
         self.max_chars = MAX_CHARACTERS
         self.top_k = TOP_K_RESULTS
 
-    def search(self, query: str, terms:str="") -> (List[str], List[str]):
+    def search(self, query: str, terms:str="") -> FetcherResult:
         results_raw = self.wrapper.results(query, max_results=self.top_k)
         results: List[str] = []
         documents: List[str] = []
@@ -34,4 +35,4 @@ class DuckDuckGoFetcher(Fetcher):
             results.append(content)
             documents.append(link or "Unknown source")
         print(f"DuckDuckGoFetcher found {len(documents)} summaries: {documents}")
-        return results, documents
+        return FetcherResult(results, documents)

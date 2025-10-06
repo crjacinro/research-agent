@@ -3,6 +3,7 @@ from typing import List
 from langchain_community.utilities import ArxivAPIWrapper
 
 from app.fetchers import Fetcher, MAX_CHARACTERS, TOP_K_RESULTS
+from app.models.results import FetcherResult
 
 
 class ArxivFetcher(Fetcher):
@@ -14,7 +15,7 @@ class ArxivFetcher(Fetcher):
         self.wrapper = ArxivAPIWrapper(top_k_results=TOP_K_RESULTS, load_all_available_meta=False)
         self.max_chars = MAX_CHARACTERS
 
-    def search(self, query: str, terms:str="") -> (List[str], List[str]):
+    def search(self, query: str, terms:str="") -> FetcherResult:
         """
         Returns a list of string snippets from arXiv relevant to the query.
         """
@@ -30,4 +31,4 @@ class ArxivFetcher(Fetcher):
             results.append(content)
             documents.append(doc.metadata["Title"] or "Unknown source")
         print(f"ArxivFetcher found {len(results)} documents: {documents}")
-        return results, documents
+        return FetcherResult(results, documents)

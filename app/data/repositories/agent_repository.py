@@ -1,5 +1,5 @@
 from app.data.entities.models import AgentInDB, ConversationInDB, TIMEZONE_OFFSET
-from app.models.query_result import QueryResult
+from app.models.results import QueryResult
 from app.models.requests import AgentCreate
 from datetime import datetime
 
@@ -27,7 +27,7 @@ async def add_conversations(agent_id: str, query: str, query_result: QueryResult
     new_conversation = ConversationInDB(
         query=query,
         agent_response=query_result.agent_response,
-        source=query_result.source,
+        source=query_result.domain,
         documents=query_result.documents
     )
     
