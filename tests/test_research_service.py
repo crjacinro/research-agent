@@ -15,12 +15,12 @@ async def test_create_agent_success(monkeypatch):
         def __init__(self, id: str, name: str):
             self.id = id
             self.name = name
+            self.messages = []
 
-    async def mock_create_agent_entity(agent_id: str, agent_in: AgentCreate):
-        return FakeAgent(id=agent_id, name=agent_in.name)
+    async def mock_create_agent_entity(agent_in: AgentCreate):
+        return FakeAgent(id=str(agent_uuid), name=agent_in.name)
 
     monkeypatch.setattr(research_service, "create_agent_entity", mock_create_agent_entity)
-    monkeypatch.setattr(research_service, "uuid4", lambda: agent_uuid)
 
     result = await research_service.create_agent(AgentCreate(name=agent_name))
 
@@ -37,6 +37,7 @@ async def test_get_agent_success(monkeypatch):
         def __init__(self, id: str, name: str):
             self.id = id
             self.name = name
+            self.messages = []
 
     async def mock_get_agent_entity(agent_id: str):
         return FakeAgent(id=agent_id, name=agent_name)

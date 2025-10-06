@@ -19,12 +19,12 @@ async def test_create_agent_entity_success():
         
         mock_agent_class.return_value = mock_agent
         
-        result = await create_agent_entity(agent_id, agent_create)
+        result = await create_agent_entity(agent_create)
         
-        mock_agent_class.assert_called_once_with(
-            id=agent_id,
-            name=agent_name
-        )
+        mock_agent_class.assert_called_once()
+        call_args = mock_agent_class.call_args
+        assert call_args[1]['name'] == agent_name  # Check name is passed correctly
+        assert 'id' in call_args[1]  # Check that id is provided
         
         mock_agent.insert.assert_called_once()
         

@@ -3,7 +3,6 @@ from app.data.repositories.agent_repository import create_agent_entity, delete_a
 from app.models.requests import AgentCreate
 from app.models.response import AgentOut, agent_in_db_to_out
 from app.models.results import QueryResult
-from uuid import uuid4
 from app.workflows.research_graph import process_query
 
 async def get_agent(agent_id: str) -> AgentOut:
@@ -12,8 +11,7 @@ async def get_agent(agent_id: str) -> AgentOut:
     return agent_in_db_to_out(current_agent)
 
 async def create_agent(agent_in: AgentCreate) -> AgentOut:
-    agent_id = str(uuid4())
-    new_agent = await create_agent_entity(agent_id, agent_in)
+    new_agent = await create_agent_entity(agent_in)
 
     return agent_in_db_to_out(new_agent)
 

@@ -12,8 +12,6 @@ async def init_db():
     """
     Initialize MongoDB client and Beanie document models.
     """
-    global _client, _db
-
     mongodb_uri = os.getenv("MONGODB_URI")
     mongodb_db = os.getenv("MONGODB_DB")
 
@@ -22,13 +20,9 @@ async def init_db():
 
     await init_beanie(database=_db, document_models=[AgentInDB, ConversationInDB])
 
-    print("✅ MongoDB + Beanie initialized.")
-
 async def close_db():
     """
     Close MongoDB client on app shutdown.
     """
-    global _client
     if _client:
         _client.close()
-        print("🛑 MongoDB connection closed.")

@@ -28,7 +28,7 @@ def test_create_agent_success(client, monkeypatch):
     response = client.post("/agents/", json=payload)
 
     assert response.status_code == 201
-    assert response.json() == {"id": "abc123", "name": "Researcher"}
+    assert response.json() == {"id": "abc123", "name": "Researcher", "messages": []}
 
 
 def test_create_agent_validation_error_returns_400(client, monkeypatch):
@@ -55,7 +55,7 @@ def test_get_agent_success(client, monkeypatch):
     response = client.get("/agents/xyz")
 
     assert response.status_code == 200
-    assert response.json() == {"id": "xyz", "name": "A1"}
+    assert response.json() == {"id": "xyz", "name": "A1", "messages": []}
 
 
 def test_get_agent_not_found_returns_404(client, monkeypatch):

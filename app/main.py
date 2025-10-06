@@ -4,10 +4,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, status, Request
 from fastapi.exceptions import RequestValidationError
 from starlette.responses import JSONResponse
+from dotenv import load_dotenv
 
 from app.api import agents
 from app.core.db import init_db, close_db
-from dotenv import load_dotenv
 
 load_dotenv()
 
